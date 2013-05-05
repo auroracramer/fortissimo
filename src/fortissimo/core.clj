@@ -27,9 +27,7 @@
     (let t1 (newTemp))
     (let t2 (newTemp))
     (let t3 (newTemp))
-    (let retn 0)
-      ; Check the type of instruction)
-  )
+    (let retn 0)))
 
 
 (defn State [stmts env pc callstack]
@@ -37,8 +35,11 @@
   {:stmts stmts, :env env, :pc pc, :callstack callstack}
   )
 
+(gen-and-load-class 'user.ProgramEndException :extends Exception)
+
 (defn ProgramEnd [exit_value]
-  (throw (Exception. exit_value)))
+  ; Need to store info in exception
+  (throw (new user.Exception str(exit_value))))
 
 (defn Fun [argList body]
   {:argList argList, :body body})
@@ -93,9 +94,26 @@
     (let fbody ((func :fun) :body))
     (let fargs ((func :fun) :argList))
     (let fenv (func :env))
-    (let aargs (for ; Finish list comp
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;
+    (let aargs (for [a (inst :args)] (lookup a))); Finish list comp
+    (let state (assoc state :callstack (conj (state :callstack) (list (state :stmts) (state :pc) (state :env) lhsVar))))
+
+    (let state (assoc state :env (addScope fenv)))
+    (let state (assoc state :env (merge (state :env) (zipmap fargs aargs))))
+
+    (let state (assoc state :stmts fbody))
+    (let state (assoc state :pc 0))
   )
+
+  (letfn execReturn [state]
+    (cond (= (count (state :callstack)) 0) (ProgramEnd (list (lookup (inst :ret)) nil true)))
+    (let retVal (lookup (inst :ret))))
+
+  (let actions {})
+
+  (while true (do 
+                (let inst ((state :stmts) (state :pc)))
+                (let state (assoc state :pc (+ (state :pc) 1)))
+                (try (catch user.ProgramEndException e (e.exit_value))))) 
 )
 
 (defn desugar [stmts]
