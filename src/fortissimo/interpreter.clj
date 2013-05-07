@@ -5,6 +5,10 @@
 (defn Closure [body args env]
   {:body body, :args args, :outer_env env})
 
+; Util function for membership testing vectors
+(defn in? [seq elm]
+  (some #(= elm %) seq))
+
 ; Executes the simplified AST
 (defn Exec [smts]
   ; Raises errors and exit
@@ -16,7 +20,7 @@
   ; default variables for the scale (C-maj scale), octave (4), and
   ; and instrument (piano). Also makes the field for the notes.
   (letfn newEnv [parent]
-    {:_scale [:C :D :E :F :G :A :B], :_octave 4, :_currInstr piano, :_notes {}, :__up__ parent})
+    {:_notes {}, :__up__ parent})
 
   ; Evaluate an expression in the context of an environment
   (letfn evalExp [e env]
@@ -41,13 +45,62 @@
     (doseq [s stmts]
       (let env (cond ; updates the environment after every pass
         (= (first s) :asgn) (update (second s) env (last s)) ; asgn - Binds a symbol to a new value
-        (= (first s) :notes) (update :_notes env (addNotes (second s) (env :_notes))) ; notes - adds notes to the note queue
-        (= (first s) :play) (playPhrase (second s) []) ; play - appends the notelist of the phrase to the queue of the current env
+        (= (first s) :notes) (update :_notes env (addNotes (second s) env)) ; notes - adds notes to the note queue
+        (= (first s) :play) (playPhrase (second s) (last s)) ; play - appends the notelist of the phrase to the queue of the current env
       )))
     env) ; return the environment
   ; Adds notes to the note queue and returns it back
-  (letfn addNotes [newNotes noteQueue]
-    )
+  (letfn addNotes [newNotes env]
+    ; TODO add error handling for erroneous notes
+    
+    ; Returns the scale number, accounting for a number above or below the
+    ; length of the scale.
+    (letfn noteMod [n scale]
+      (let scaleLen (count scale))
+      (cond ; Shouldn't be zero
+        (< n 0) (cond ; If negative
+          (= (mod (+ 1 n) scaleLen) 0) scaleLen 
+          :else (mod (+ 1 n) scaleLen))
+        (= (mod n scaleLen) 0) scaleLen ; Instead of being zero, the scale #s divisible
+                                        ; by the scale length should be the scale length
+        :else (mod n scaleLen)
+        ))
+
+    ; Returns the octave number of a note, given the notes position in the scale and the
+    ; local scale
+    (letfn octMod [n oct scale]
+      ; The specified scale technically just sets the octave of the scale's first note
+      (let note (noteMod n scale))
+      (let scaleLen (count scale))
+      ; Gets the letter of the note, as a string
+      (letfn getBaseNote [note]
+        (subs (str note) 1 2))
+      ; Returns if a note in a scale is before C (when the octave increments)
+      (letfn beforeC? [curr root]
+        ; Check to see if the note is in the subvector of notes between the root
+        ; and C
+        (let letters ["C" "D" "E" "F" "G" "A" "B"])
+        (in? (subvec letters (.indexOf letters root)) curr))
+      ; Turns the number of scale steps above root into octaves above root, and adds it to
+      ; any increment in octave from being C or above, and returns it
+      (+ (cond 
+           (< n 0) (- (int (/ (+ 1 n) scaleLen)) 1)
+           :else (int (/ (- n 1) scaleLen)))
+        (cond (beforeC? (getBaseNote note) (getBaseNote (first scale))) 0 :else 1))
+      )
+    
+    ; Returns a note's duration given the note type, tempo, and meter
+    (letfn noteDuration [duration tempo meter]
+      )
+    
+    ; Get the note queue for the current instrument
+    (let notes ((env :_notes) (env :_currInstr)))
+    ; Add each note to the instrument's note queue
+    (doseq [note newNotes]
+      (cond
+       ; If a scale note, find the absolute note by looking up the scale and octave
+       (= (first note) :scale-note) (let notes (conj notes [(keyword (str (name ((env :_scale) (- (noteMod (second note) 1) (env :_scale)))) (octMod (second note) (env :_octave) (env :_scale)))) (env :_duration)]))
+        )))
   ; Appends the notelist of the phrase to this phrase to the queue of the current environment
   ; At the end of the program, the queue is evaluated and played
   (letfn playPhrase [closure args]
@@ -57,7 +110,7 @@
     ; Evaluate the body of the phrase
     (evalStmt (closure :body) new_env))
   ; Start executing the statements in the global environment
-  (evalStmt stmts (newEnv nil)))
+  (evalStmt stmts {:_scale [:C :D :E :F :G :A :B], :_octave 4, :_currInstr piano, :_duration :q, :_tempo 120, :_meter (/ 4 4), :_notes {}, :__up__ nil}))
 
 ; Desugars the AST into a simplified AST
 (defn Desugar [ast]
