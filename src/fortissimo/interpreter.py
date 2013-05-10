@@ -130,10 +130,10 @@ def Exec(stmts):
             if note[0] == "scale-note":
                 scale = lookup("_scale", env)
 
-                notes.append({'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], lookup("_octave", env), scale), 'duration':noteDuration(duration, lookup("_meter", env)),'tempo': lookup("_tempo", env)})
+                notes.append({'instr':currInstr,'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], lookup("_octave", env), scale), 'duration':noteDuration(duration, lookup("_meter", env)),'tempo': lookup("_tempo", env)})
             if note[0] == "scale-duration-note":
                 scale = lookup("_scale", env)
-                notes.append({'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], lookup("_octave", env), scale), 'duration':noteDuration(note[2], lookup("_meter", env)), 'tempo':lookup("_tempo", env)})
+                notes.append({'instr':currInstr,'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], lookup("_octave", env), scale), 'duration':noteDuration(note[2], lookup("_meter", env)), 'tempo':lookup("_tempo", env)})
                 
     return evalStmt(stmts, {"_scale": ["C","D","E","F","G","A","B"], "_octave": 4, "_currInstr": "Piano", "_duration": "q", "_tempo": 120, "_meter": (4,4), "_notes": [{}], "__up__": None})
 
