@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import sys
-import getopt, parser_generator, grammar_parser#, interpreter
+import getopt, parser_generator, grammar_parser, interpreter
+import pprint
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print "Please give one argument, the input filename."
@@ -19,5 +20,5 @@ if __name__ == '__main__':
 
     # Load program into the cs164interpreter
     input_ast = cs164parser.parse(open(cs164_input_file).read())
-    #interpreter.ExecGlobal(input_ast)
-    print input_ast
+    pprint.pprint(input_ast)
+    pprint.pprint(interpreter.Exec(input_ast))
