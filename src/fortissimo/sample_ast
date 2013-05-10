@@ -1,0 +1,1 @@
+[['asgn', 'Inst1', 'Piano'], ['phrase-def', 'CScale', [], [['playing', 'Inst1'], ['notes', [['scale-note', 1], ['scale-note', 2], ['scale-note', 3], ['scale-note', 4], ['scale-note', 5], ['scale-note', 6], ['scale-note', 7], ['scale-note', 8]]]]], ['play', 'CScale']]
