@@ -14,11 +14,11 @@ def playNotes(notes):
             (cond
                 (empty? notes) (fn [] (do))
                 (= (notes "tempo") (metro-bpm metro)) (let [note (first notes)]
-                    (at (metro offset) ((load-string (note "instr")) (note "pitch") (note "duration"))) ; Add a library of instrs
+                    (at (metro offset) ((instrs (load-string (note "instr"))) (note "pitch") (note "duration"))) ; Add a library of instrs
                     (process (rest notes) (+ offset (note "duration")) metro))
                 :else (apply-at (metro offset) (let [note (first notes)]
                     (def metro (metronome (note "tempo")))
-                    (at (metro) ((load-string (note "instr")) (note "pitch") (note "duration")))
+                    (at (metro) ((instrs (load-string (note "instr"))) (note "pitch") (note "duration")))
                     (process (rest notes) (+ offset (note "duration")) metro)))))]
             (process notes 0 (metronome 120))))
     '''
