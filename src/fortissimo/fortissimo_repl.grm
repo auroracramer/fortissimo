@@ -19,7 +19,9 @@ S -> Phrase %{ return n1.val %}
   | 'Notes' NoteList %{ return ['notes', n2.val] %}
   | 'Key of' ID %{ return ['key', n2.val, "major"] %}
   | 'Key of' ID ID %{ return ['key', n2.val, n3.val] %}
-  | 'Meter of' Meter %{ return ['meter', (n2.val[0], n2.val[2])] %}
+  | 'Meter of' Meter %{ return ['meter', (int(n2.val[0]), int(n2.val[2]))] %}
+  | '|' PhraseHeader
+  | '||'
   ;
 
 PhraseList -> PhraseList ID %{ return n1.val + [n2.val] %}
