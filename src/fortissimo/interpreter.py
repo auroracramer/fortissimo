@@ -19,7 +19,7 @@ def Exec(stmts):
             return env[name]
         else:
             return lookup(name, env['__up__'])
-            
+
     def evalStmt(stmts,env):
         def doCall(phrase, args):
             new_env = {}
@@ -36,11 +36,11 @@ def Exec(stmts):
                 if arg[0] == "key":
                     new_env["_scale"] = key_engine(arg[1], arg[2])
                 elif arg[0] == "instr":
-                    new_env[arg[1]] = arg[2] 
+                    new_env[arg[1]] = arg[2]
                 else:
                     new_env["_" + arg[0]] = arg[1]
             return evalStmt(phrase.body, new_env)
-            
+
         def update(name,env,val):
             if not env:
                 sys.exit(1)
@@ -59,14 +59,14 @@ def Exec(stmts):
                         env["_notes"] = val["_notes"]
                     else:
                         env["_notes"].extend(val["_notes"])
-                        
+
             elif s[0] == 'play-with': # only one phrase can follow after
                 phrase = lookup(s[1], env)
                 val = doCall2(phrase, s[2])
                 if env["_notes"][0] == {}:
                     env["_notes"] = val["_notes"]
                 else:
-                    env["_notes"].extend(val["_notes"]) 
+                    env["_notes"].extend(val["_notes"])
             elif s[0] == "asgn":
                 env[s[1]] = s[2]
             elif s[0] == "playing":
@@ -79,17 +79,17 @@ def Exec(stmts):
                     env["_currInstr"] = env[s[1]]
                 else:
                     env["_currInstr"] = s[1]
-                if "_octave"in env.keys():
+                if "_octave"in env.keys() and env["__up__"] is not None:
                     pass
                 else:
                     env["_octave"] = s[2]
             elif s[0] == "key":
-                if "_scale" in env.keys():
+                if "_scale" in env.keys() and env["__up__"] is not None:
                     pass
                 else:
                     env["_scale"] = key_engine(s[1], s[2])
             elif s[0] == "meter":
-                if "_meter" in env.keys():
+                if "_meter" in env.keys() and env["__up__"] is not None:
                     pass
                 else:
                     env["_meter"] = s[1]
@@ -102,7 +102,7 @@ def Exec(stmts):
             else:
                 raise SyntaxError("Illegal or Unimplemented AST node: " + str(s))
         return env
-        
+
     def addNotesToQueue(newNotes, env):
         def noteMod(n, scale):
             scaleLen = len(scale)
@@ -119,14 +119,14 @@ def Exec(stmts):
         def getOctave(n, octv, scale):
             note = scale[noteMod(n, scale) - 1]
             scaleLen = len(scale)
-            
+
             def getBaseNote(note):
                 return note[0:1]
 
             def beforeC(curr, root):
                 letters = ["C", "D", "E", "F", "G", "A", "B"]
                 return curr in letters[letters.index(root):]
-            
+
             octave = octv
 
             if n < 0:
@@ -150,7 +150,7 @@ def Exec(stmts):
             if dotted:
                 beats = beats * 1.5
             return beats
-        
+
         notesDict = lookup("_notes", env)[0] # Assume there is nothing after play stmt
         currInstr = lookup("_currInstr", env)
         if currInstr not in notesDict:
@@ -165,7 +165,7 @@ def Exec(stmts):
             if note[0] == "scale-duration-note":
                 scale = lookup("_scale", env)
                 notes.append({'instr':currInstr,'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], lookup("_octave", env), scale), 'duration':noteDuration(note[2], lookup("_meter", env)), 'tempo':lookup("_tempo", env)})
-                
+
     return evalStmt(stmts, {"_scale": ["C","D","E","F","G","A","B"], "_octave": 4, "_currInstr": "Piano", "_duration": "q", "_tempo": 120, "_meter": (4,4), "_notes": [{}], "__up__": None})
 
 def Run(sast):
