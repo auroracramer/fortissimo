@@ -3,7 +3,34 @@ import pyclj
 @pyclj.clojure
 def startOvertone():
     '''
+    (use 'overtone.live)
     (use 'fortissimo.instruments)
+    '''
+
+@pyclj.clojure
+def startRecording(filepath):
+    '''
+    (defn startRecording [filepath] (recording-start filepath))
+    '''
+
+@pyclj.clojure
+def importInstrument(filepath):
+    '''
+    ;; For user defined instruments, must accept keyword parameters, the very least being freq and sustain.
+    (defn importInstrument [filename]
+        (load-file filename))
+    '''
+
+@pyclj.clojure
+def stopSound():
+    '''
+    (defn stopSound [] (stop))
+    '''
+
+@pyclj.clojure
+def stopRecording():
+    '''
+    (defn stopRecording [] (recording-stop))
     '''
 
 @pyclj.clojure

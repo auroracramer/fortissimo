@@ -8,9 +8,7 @@
   (/ (* duration 60.0) tempo))
 
 
-;; For user defined instruments, must accept keyword parameters, the very least being freq and sustain.
-(defn importInstrument [filename]
-  (load-file filename))
+
 
 ; User defined instrument should be wrapped in this function
 (defn userInstrument [name_, instr]
