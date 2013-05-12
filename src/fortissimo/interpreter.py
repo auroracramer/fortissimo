@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 from key_engine import key_engine
+import pprint
 
 class Phrase:
     def __init__(self, name, body, args, env):
@@ -27,50 +28,80 @@ def Exec(stmts):
             for i in range(len(args)):
                 new_env[phrase.args[i]] = args[i]
             return evalStmt(phrase.body, new_env)
+        def doCall2(phrase, args):
+            new_env = {}
+            new_env['__up__'] = phrase.outer_env
+            new_env["_notes"] = [{}]
+            for arg in args:
+                if arg[0] == "key":
+                    new_env["_scale"] = key_engine(arg[1], arg[2])
+                elif arg[0] == "instr":
+                    new_env[arg[1]] = arg[2] 
+                else:
+                    new_env["_" + arg[0]] = arg[1]
+            return evalStmt(phrase.body, new_env)
             
         def update(name,env,val):
             if not env:
-                #print "variable not found: ", name
                 sys.exit(1)
             elif name in env:
                 env[name] = val
             else:
                 update(name,env['__up__'],val)
         for s in stmts:
-            #print "current statement: ", s
             if s[0] == 'phrase-def':
-                #print "defining phrase: ", s[1]
                 env[s[1]] = Phrase(s[1], s[3], s[2], env)
             elif s[0] == "play":
                 for p in s[1]:
                     phrase = lookup(p, env)
                     val = doCall(phrase, phrase.args)
-                    #print "PRINTING ENVIRONMENT"
-                    #pprint.pprint(env)
                     if env["_notes"][0] == {}:
-                        env["_notes"] = val
+                        env["_notes"] = val["_notes"]
                     else:
-                        env["_notes"].extend(val)
+                        env["_notes"].extend(val["_notes"])
+                        
+            elif s[0] == 'play-with': # only one phrase can follow after
+                phrase = lookup(s[1], env)
+                val = doCall2(phrase, s[2])
+                if env["_notes"][0] == {}:
+                    env["_notes"] = val["_notes"]
+                else:
+                    env["_notes"].extend(val["_notes"]) 
             elif s[0] == "asgn":
-                #print "assigning :", s[2], "to ", s[1]
                 env[s[1]] = s[2]
             elif s[0] == "playing":
-                #print "playing: ", s[1]
-                env["_currInstr"] = s[1]
+                if s[1] in env.keys():
+                    env["_currInstr"] = env[s[1]]
+                else:
+                    env["_currInstr"] = s[1]
             elif s[0] == "playing-in":
-                env["_currInstr"] = s[1]
-                env["_octave"] = s[2]
+                if s[1] in env.keys():
+                    env["_currInstr"] = env[s[1]]
+                else:
+                    env["_currInstr"] = s[1]
+                if "_octave"in env.keys():
+                    pass
+                else:
+                    env["_octave"] = s[2]
             elif s[0] == "key":
-                env["_scale"] = key_engine(s[1], s[2])
+                if "_scale" in env.keys():
+                    pass
+                else:
+                    env["_scale"] = key_engine(s[1], s[2])
             elif s[0] == "meter":
-                env["_meter"] = s[1]
+                if "_meter" in env.keys():
+                    pass
+                else:
+                    env["_meter"] = s[1]
             elif s[0] == "notes":
-                #print "defining notelist: ", s[1]
-                # call add notes to queue
+                # print
+                # print
+                # print "ADDING NOTES TO :"
+                #pprint.pprint(env)
                 addNotesToQueue(s[1], env)
             else:
                 raise SyntaxError("Illegal or Unimplemented AST node: " + str(s))
-        return env["_notes"]
+        return env
         
     def addNotesToQueue(newNotes, env):
         def noteMod(n, scale):
@@ -138,10 +169,4 @@ def Exec(stmts):
     return evalStmt(stmts, {"_scale": ["C","D","E","F","G","A","B"], "_octave": 4, "_currInstr": "Piano", "_duration": "q", "_tempo": 120, "_meter": (4,4), "_notes": [{}], "__up__": None})
 
 def Run(sast):
-    #print "The AST is "
-    #print ast
-    #sast = Desugar(ast)
-    #print "The simplified AST is "
-    #print sast
-    
     Exec(sast)

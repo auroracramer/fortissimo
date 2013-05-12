@@ -13,6 +13,7 @@ Statements -> Statements S %{ return n1.val + [n2.val] %}
 
 S -> Phrase %{ return n1.val %}
   |  'Play' PhraseList %{ return ['play', n2.val] %}
+  | 'Play' ID 'with' ParamList %{ return ['play-with', n2.val, n4.val] %}
   |  ID 'is' ID %{ return ['asgn', n1.val, n3.val] %}
   | 'Playing' ID %{ return ['playing', n2.val] %}
   | 'Playing' ID 'in' 'Octave' Num %{ return ['playing-in', n2.val, n5.val] %}
@@ -26,11 +27,22 @@ PhraseList -> PhraseList ID %{ return n1.val + [n2.val] %}
 	| ID %{ return [n1.val] %}
 	;
 
+ParamList -> Param %{ return [n1.val] %}
+	| ParamList Param %{ return n1.val + [n2.val] %}
+	;
+
+Param -> 'Key' ID ID %{return ['key', n2.val, n3.val] %}
+	| 'Meter' Meter %{ return ['meter', n2.val] %}
+	| 'Octave' Num %{ return ['octave', n2.val] %}
+	| 'Instrument' ID ID %{ return ['instr', n2.val, n3.val] %}
+	| 'Tempo' Num %{ return ['tempo', n2.val] %}
+	| 'Test'
+	;
+
 Phrase -> '|' PhraseHeader Statements '||' %{ return ['phrase-def', n2.val, [], n3.val] %}
        ;
 
 PhraseHeader -> ID %{return n1.val %}
-             |  _
              ;
 
 NoteList -> NoteList Note %{ return n1.val + [n2.val] %}
