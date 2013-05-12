@@ -3,23 +3,23 @@ import pyclj
 @pyclj.clojure
 def startOvertone():
     '''
-    (use 'overtone.live)
+    (use 'fortissimo.instruments)
     '''
 
 @pyclj.clojure
 def playNotes(notes):
     '''
     (defn playNotes [notes]
-        (let [process (fn [notes offset metro]
+        (loop [process (fn process [notes offset metro]
             (cond
                 (empty? notes) (fn [] (do))
-                (= (notes "tempo") (metro-bpm metro)) (let [note (first notes)]
-                    (at (metro offset) ((instrs (load-string (note "instr"))) (note "pitch") (note "duration"))) ; Add a library of instrs
-                    (process (rest notes) (+ offset (note "duration")) metro))
-                :else (apply-at (metro offset) (let [note (first notes)]
-                    (def metro (metronome (note "tempo")))
-                    (at (metro) ((instrs (load-string (note "instr"))) (note "pitch") (note "duration")))
-                    (process (rest notes) (+ offset (note "duration")) metro)))))]
-            (process notes 0 (metronome 120))))
+                (= ((first notes) "tempo") (metro-bpm metro)) (let [noote (first notes)]
+                    (at (metro offset) ((instrs (noote "instr")) (noote "pitch") (noote "duration") (noote "tempo"))) ; Add a library of instrs
+                    (process (rest notes) (+ offset (noote "duration")) metro))
+                :else (apply-at (metro offset) (fn [] (let [noote (first notes) metro (metronome (noote "tempo"))]
+                    
+                    (at (metro (metro)) ((instrs (noote "instr")) (noote "pitch") (noote "duration") (noote "tempo")))
+                    (process (rest notes) (+ (metro) (noote "duration")) metro))))))]
+            (process notes 0 (metronome -1))))
     '''
 
