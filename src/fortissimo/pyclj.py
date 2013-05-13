@@ -20,7 +20,7 @@ def determine_clojure_namespace(fn):
 def build_clojure_function_object(clj_namespace, fn):
     """Builds a clojure function from a python function with clojure code in the docs.
     """
-    clojure_code = '(ns %s)\n%s' % (
+    clojure_code = '(ns %s (:use [overtone.live] [fortissimo.instruments]))\n%s' % (
         clj_namespace,
         fn.__doc__)
     clojure_compile_string(clojure_code)

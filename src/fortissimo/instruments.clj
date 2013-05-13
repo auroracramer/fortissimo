@@ -7,12 +7,9 @@
 (defn getDuration [duration tempo]
   (/ (* duration 60.0) tempo))
 
-
-
-
 ; User defined instrument should be wrapped in this function
 (defn userInstrument [name_, instr]
-  (defn instrs (assoc instrs name_ instr)))
+  (def instrs (assoc instrs name_ instr)))
 
 (definst saw-wave [freq 440 attack 0.01 sustain 0.4 release 0.1 vol 0.4] 
     (* (env-gen (lin-env attack sustain release) 1 1 0 1 FREE)
