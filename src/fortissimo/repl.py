@@ -233,5 +233,3 @@ def rep_loop():
                     phrase_list[num_phrases] += line + " "
                 else:
                     phrase_list[num_phrases] += line + " "
-
-rep_loop()
