@@ -2,6 +2,7 @@
 import sys
 from key_engine import key_engine
 import pprint
+from overtonepy import *
 
 class Phrase:
     def __init__(self, name, body, args, env):
@@ -168,5 +169,14 @@ def Exec(stmts):
 
     return evalStmt(stmts, {"_scale": ["C","D","E","F","G","A","B"], "_octave": 4, "_currInstr": "Piano", "_duration": "q", "_tempo": 120, "_meter": (4,4), "_notes": [{}], "__up__": None})
 
-def Run(sast):
-    Exec(sast)
+def EvalNotes(notes, output_filepath):
+    startOvertone()
+    startRecording(output_filepath)
+    playNotes(notes)
+    stopRecording()
+
+def Interpret(sast, output_filepath):
+    evaled = Exec(sast)
+    EvalNotes(evaled["_notes"])
+
+
