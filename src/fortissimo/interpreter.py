@@ -99,7 +99,7 @@ class Interpreter:
                     else:
                         env["_notes"].extend(val["_notes"])
             elif s[0] == 'loop':
-                self.evalStmt(s[1:], env)
+                self.evalStmt(s[1], env)
                 """
                 for p in s[1:]:                        
                     if s[1][0] == 'play-with':

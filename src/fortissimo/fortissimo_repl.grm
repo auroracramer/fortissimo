@@ -25,15 +25,17 @@ S -> Phrase %{ return n1.val %}
   | 'save' ID %{ return ['save', n2.val] %}
   | 'load' ID %{ return ['load', n2.val] %}
   | 'print' %{ return ['print'] %}
-  | 'loop' ID Num 'times' 'with' ParamList %{ return ['loop'] + [['play-with', n2.val, n6.val]] * n3.val %}
-  | 'loop' ID Num 'times' %{ return ['loop'] + [['play', n2.val]]* n3.val %}
+  | 'loop' ID Num 'times' 'with' ParamList %{ return ['loop', [['play-with', n2.val, n6.val]] * n3.val] %}
+  | 'loop' ID Num 'times' %{ return ['loop', [['play', n2.val]]* n3.val] %}
   | 'quit' %{ return ['quit'] %}
   | 'exit' %{ return ['quit'] %}
   | 'record' %{ return ['record'] %}
+  | 'stop recording' %{ return ['stop-record'] %}
   | 'record' ID %{ return ['record-phrase', n2.val] %}
   | 'duration' 'of' /[w,h,q,e,s,t]/ %{return ['duration', n3.val] %}
-  | 'include files' /^\s*[\\w,\s-]+$/ %{ return ['include', n2.val] %}
-  | 'import instr' /^\s*[\\w,\s-]+$/  %{ return ['import-instr', n2.val] %}
+  | 'include files' /\s*[\\w,\s-]+/ %{ return ['include', n2.val] %}
+  | 'import instr' /\s*[\\w,\s-]+/  %{ return ['import-instr', n2.val] %}
+  |  'help' %{ return ['help'] %}
   ;
 
 PhraseList -> PhraseList ID %{ return n1.val + [n2.val] %}

@@ -22,8 +22,8 @@ S -> Phrase %{ return n1.val %}
   | 'key of' ID ID %{ return ['key', n2.val, n3.val] %}
   | 'meter of' Meter %{ return ['meter', (int(n2.val[0]), int(n2.val[2]))] %}
   | 'tempo of' Num %{ return ['tempo', int(n2.val)] %}
-  | 'loop' PhraseList Num 'times' %{ return [ ['loop'] +  [['play', n2.val]] * n3.val] %}
-  | 'loop' ID Num 'times' 'with' ParamList %{ return ['loop'] + [['play-with', n2.val, n6.val]] * n3.val %}
+  | 'loop' PhraseList Num 'times' %{ return  ['loop', [['play', n2.val]] * n3.val] %}
+  | 'loop' ID Num 'times' 'with' ParamList %{ return ['loop', [['play-with', n2.val, n6.val]] * n3.val] %}
   | 'duration' 'of' /[a,b,c,d,e,f,g]/ %{return ['duration', n3.val] %}
   | 'include files' /"([^"\\]*(?:\\.[^"\\]*)*)"/ %{ return ['include', n2.val] %}
   | 'import instr' /"([^"\\]*(?:\\.[^"\\]*)*)"/  %{ return ['import-instr', n2.val] %}
