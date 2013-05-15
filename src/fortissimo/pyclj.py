@@ -44,6 +44,7 @@ def clojure(fn):
 
     def aux(*args):
         return clojure_fnc.invoke(*args)
+
     functools.update_wrapper(aux, fn)
 
     return aux

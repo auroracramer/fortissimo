@@ -20,6 +20,6 @@
   (midi->hz (note music-note)))
 
 (def instrs {
-  "piano" (fn [pitch duration tempo]  (sampled-piano :note (note pitch) :sustain (getDuration duration tempo))),
-  "saw-wave" (fn [pitch duration tempo] (saw-wave :freq (note->hz pitch) :sustain (getDuration duration tempo)))
+  "Piano" (fn [pitch duration tempo]  (sampled-piano :note (note pitch) :sustain (getDuration duration tempo))),
+  "SawWave" (fn [pitch duration tempo] (saw-wave :freq (note->hz pitch) :sustain (getDuration duration tempo)))
   })

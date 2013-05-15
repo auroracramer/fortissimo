@@ -8,21 +8,29 @@ Start -> Statements %{ return n1.val  %}
 
 Statements -> Statements S %{ return n1.val + [n2.val] %}
            |  S %{ return [n1.val] %}
-           |  _
            ;
 
 S -> Phrase %{ return n1.val %}
-  |  'Play' PhraseList %{ return ['play', n2.val] %}
-  | 'Play' ID 'with' ParamList %{ return ['play-with', n2.val, n4.val] %}
+  | 'play' PhraseList %{ return ['play', n2.val] %}
+  | 'play' ID 'with' ParamList %{ return ['play-with', n2.val, n4.val] %}
   |  ID 'is' ID %{ return ['asgn', n1.val, n3.val] %}
-  | 'Playing' ID %{ return ['playing', n2.val] %}
-  | 'Playing' ID 'in' 'Octave' Num %{ return ['playing-in', n2.val, n5.val] %}
-  | 'Notes' NoteList %{ return ['notes', n2.val] %}
-  | 'Key of' ID %{ return ['key', n2.val, "major"] %}
-  | 'Key of' ID ID %{ return ['key', n2.val, n3.val] %}
-  | 'Meter of' Meter %{ return ['meter', (int(n2.val[0]), int(n2.val[2]))] %}
-  | '|' PhraseHeader
-  | '||'
+  | 'playing' ID %{ return ['playing', n2.val] %}
+  | 'playing' ID 'in' 'Octave' Num %{ return ['playing-in', n2.val, n5.val] %}
+  | 'notes' NoteList %{ return ['notes', n2.val] %}
+  | 'key of' ID %{ return ['key', n2.val, "major"] %}
+  | 'key of' ID ID %{ return ['key', n2.val, n3.val] %}
+  | 'meter of' Meter %{ return ['meter'] %}
+  | '|' PhraseHeader %{ return ['phrase-start'] %}
+  | '||' %{ return ['phrase-end'] %}
+  | 'save' ID %{ return ['save', n2.val] %}
+  | 'load' ID %{ return ['load', n2.val] %}
+  | 'print' %{ return ['print'] %}
+  | 'loop' ID Num 'times' 'with' ParamList %{ return ['loop'] + [['play-with', n2.val, n6.val]] * n3.val %}
+  | 'loop' ID Num 'times' %{ return ['loop'] + [['play', n2.val]]* n3.val %}
+  | 'quit' %{ return ['quit'] %}
+  | 'exit' %{ return ['quit'] %}
+  | 'record' %{ return ['record'] %}
+  | 'record' ID %{ return ['record-phrase', n2.val] %}
   ;
 
 PhraseList -> PhraseList ID %{ return n1.val + [n2.val] %}
@@ -33,12 +41,11 @@ ParamList -> Param %{ return [n1.val] %}
 	| ParamList Param %{ return n1.val + [n2.val] %}
 	;
 
-Param -> 'Key' ID ID %{return ['key', n2.val, n3.val] %}
-	| 'Meter' Meter %{ return ['meter', n2.val] %}
-	| 'Octave' Num %{ return ['octave', n2.val] %}
-	| 'Instrument' ID ID %{ return ['instr', n2.val, n3.val] %}
-	| 'Tempo' Num %{ return ['tempo', n2.val] %}
-	| 'Test'
+Param -> 'key' ID ID %{return ['key', n2.val, n3.val] %}
+	| 'meter' Meter %{ return ['meter', n2.val] %}
+	| 'octave' Num %{ return ['octave', n2.val] %}
+	| 'instrument' ID ID %{ return ['instr', n2.val, n3.val] %}
+	| 'tempo' Num %{ return ['tempo', n2.val] %}
 	;
 
 Phrase -> '|' PhraseHeader Statements '||' %{ return ['phrase-def', n2.val, [], n3.val] %}
@@ -53,9 +60,13 @@ NoteList -> NoteList Note %{ return n1.val + [n2.val] %}
 
 Note -> Num %{return ['scale-note', n1.val] %}
   | NumDuration %{return ['scale-duration-note', int(n1.val[:-1]), n1.val[-1]] %}
+  | AbsoluteNote %{return ['abs-note', n1.val] %}
   ;
 
 NumDuration -> /\-*[0-9]+[w,h,q,e,s,t]/ %{return n1.val %}
+  ;
+
+AbsoluteNote -> /[a,b,c,d,e,f]([#,b]?)([1-8]?)([w,h,q,e,s,t]?)/ %{ return n1.val %}
   ;
 
 Num -> /\-*[0-9]+/ %{return int(n1.val) %}
