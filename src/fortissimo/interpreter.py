@@ -192,12 +192,47 @@ class Interpreter:
         if currInstr not in notesDict:
             notesDict[currInstr] = []
         notes = notesDict[currInstr]
-        duration = self.lookup("_duration", env)
-        for note in newNotes:
+
+        def makeNote(pitch, duration):
+            return {'type': 'note', 'instr':self.lookup(currInstr, env),'pitch':pitch, 'duration':duration,'tempo': self.lookup("_tempo", env)}
+
+        def makeChord(notes, duration):
+            return {'type': 'chord', 'instr':self.lookup(currInstr, env),'notes':notes, 'duration':duration, 'tempo': self.lookup("_tempo", env)}
+        def makeRest(duration):
+            return {'type': 'rest', 'duration': duration, 'tempo': self.lookup("_tempo", env)}
+
+        def handleNote(note):
             if note[0] == "scale-note":
                 scale = self.lookup("_scale", env)
+                pitch = scale[noteMod(note[1], scale) - 1] + getOctave(note[1], self.lookup("_octave", env), scale)
 
-                notes.append({'instr':self.lookup(currInstr, env),'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], self.lookup("_octave", env), scale), 'duration':noteDuration(duration, self.lookup("_meter", env)),'tempo': self.lookup("_tempo", env)})
+                duration = noteDuration(self.lookup("_duration", env), self.lookup("_meter", env))
+                return makeNote(pitch, duration)
+            
             if note[0] == "scale-duration-note":
                 scale = self.lookup("_scale", env)
-                notes.append({'instr':self.lookup(currInstr, env),'pitch': scale[noteMod(note[1], scale) - 1] + getOctave(note[1], self.lookup("_octave", env), scale), 'duration':noteDuration(note[2], self.lookup("_meter", env)), 'tempo':self.lookup("_tempo", env)})
+                pitch = scale[noteMod(note[1], scale) - 1] + getOctave(note[1], self.lookup("_octave", env), scale)
+                duration = noteDuration(note[2], self.lookup("_meter", env))
+                
+                return makeNote(pitch, duration)
+                
+            if note[0] == 'chord':
+                notes = [handleNote(n) for n in notes]
+                duration = reduce(lambda x,y: min(x, y['duration']),100)
+                return makeChord(notes, duration)
+
+            if note[0] == 'abs-note':
+                pitch = note[1]
+                duration = noteDuration(self.lookup("_duration", env), self.lookup("_meter", env)
+                return makeNote(pitch, duration)
+
+            if note[0] == 'abs-duration-note':
+                pitch = note[1]
+                duration = noteDuration(note[2], self.lookup("_meter", env))
+        
+                return makeNote(pitch, duration)
+            if note[0] == 'rest':
+                return makeRest(note[1])
+
+        for note in newNotes:
+            notes.append(handleNote(note))
