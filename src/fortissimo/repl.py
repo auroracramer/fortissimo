@@ -3,9 +3,10 @@ from key_engine import key_engine
 import java.lang.ClassLoader
 import java.io.InputStreamReader
 import java.io.BufferedReader
+from collections import defaultdict
 import java
 import sys, getopt, interpreter, parser_generator, grammar_parser, pprint
-#import overtonepy as overtone
+import overtonepy as ot
 
 def ReadFile(filepath):
     loader = java.lang.ClassLoader.getSystemClassLoader()
@@ -17,9 +18,26 @@ def ReadFile(filepath):
         string += line + "\n"
         line = reader.readLine()
     return string
+    
+def EvalNotes(phrases, output_filepath=None):
+    if output_filepath:
+        a = ot.startRecording(output_filepath)
+    masterlist = defaultdict(list) 
+    for phrase in phrases:
+        for instr in phrase.keys():
+            masterlist[instr].extend(phrase[instr])
+    commonTime = ot.getCommonTime()
+    for index, notelist in enumerate(masterlist.values()):
+        try:
+            if index == len(masterlist.values()) - 1:
+                ot.playNotes(notelist, True, commonTime, False)
+            else:
+                ot.playNotes(notelist, False, commonTime, False)
+        except:
+            pass
 
 def rep_loop():
-    #overtone.startOvertone()
+    ot.startOvertone()
     recognizer_grm = ReadFile('fortissimo/fortissimo_repl.grm')
     parser_grm = ReadFile('fortissimo/fortissimo.grm')
     interp = interpreter.Interpreter()
@@ -28,13 +46,15 @@ def rep_loop():
     line = ""
     depth, num_phrases = 0, 0
     phrase_list = [""]
+    prompt = "ff > "
     while(True):
-        line = raw_input("ff > ")
+        line = raw_input(prompt)
+        if not line.strip():
+            continue
         try:
             ast = recognizer.parse(line)
             s = ast[0]
-            #print ast
-        except:
+        except Exception:
             print ": command not recognized"
             continue
         if s[0] == "quit" or s[0] == "exit":
@@ -52,7 +72,11 @@ def rep_loop():
         elif s[0] == "load": #REDO
             f = open("saved_phrases", "r")
             s = parser.parse(f.read())
-            interp.evalStmt(ast, interp.global_env)
+            try:
+                interp.evalStmt(ast, interp.global_env)
+            except Exception:
+                print "Could not load."
+                continue
         elif line == "print env": #DEBUG ONLY REMOVE LATER
             pprint.pprint(interp.global_env)
         elif s[0] == "print": #REDO
@@ -66,21 +90,47 @@ def rep_loop():
             if depth == 0:
                 print "Cannot end phrase here"
             elif depth == 1:
+                prompt = "ff > "
                 phrase_list[num_phrases] += line
                 phrase_ast = parser.parse(phrase_list[num_phrases])
-                interp.evalStmt(phrase_ast, interp.global_env)
-                depth -= 1
-                num_phrases += 1
-                phrase_list.append("")
+                try:
+                    interp.evalStmt(phrase_ast, interp.global_env)
+                    depth -= 1
+                    num_phrases += 1
+                    phrase_list.append("")
+                except Exception:
+                    print "Could not define phrase."
+                
             else:
                 phrase_list[num_phrases] += line + " "
                 depth -= 1
         elif s[0] == "phrase-start":
+            prompt = "... "
             depth += 1
             phrase_list[num_phrases] += line + " "
+        elif s[0] == "play" and depth == 0:
+            try:
+                play_env = interp.evalStmt(ast, interp.global_env)
+                phrases = play_env["_notes"]
+                interp.resetNotes()
+                EvalNotes(phrases)
+            except Exception:
+                print "Could not play phrase."
+            
+        elif s[0] == "loop" and depth == 0:
+            try:
+                play_env = interp.evalStmt(ast, interp.global_env)
+                phrases = play_env["_notes"]
+                interp.resetNotes()
+                EvalNotes(phrases)
+            except Exception:
+                print "Could not loop phrase."
         else:
             if depth == 0:
-                interp.evalStmt(ast, interp.global_env)
+                try:
+                    interp.evalStmt(ast, interp.global_env)
+                except Exception:
+                    print "Could not execute statement."
             else:
                 phrase_list[num_phrases] += line + " "
                 

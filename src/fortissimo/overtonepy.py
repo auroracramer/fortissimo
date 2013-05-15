@@ -48,6 +48,13 @@ def getCommonTime():
     '''
 
 @pyclj.clojure
+def getMetronome():
+    '''
+    (use 'overtone.live)
+    (defn getMetronome [] (metronome -1))
+    '''
+
+@pyclj.clojure
 def playNotes(notes, recording, commonTime, exit):
     '''
     (use 'overtone.live)
@@ -60,13 +67,21 @@ def playNotes(notes, recording, commonTime, exit):
                         (overtone.live/apply-at (metro (+ offset 8) ) (fn [] (overtone.live/recording-stop)))
                         (cond exit (apply-at (metro (+ offset 8)) (fn [] (System/exit 0))))))
                 (= (get (first notes) "tempo") (overtone.live/metro-bpm metro)) (let [noote (first notes)]
-
-                    (overtone.live/at (metro offset) ((get fortissimo.instruments/instrs (get noote "instr")) (get noote "pitch") (get noote "duration") (get noote "tempo"))) ; Add a library of instrs
+                    (cond
+                        (= (get noote "type") "note") (overtone.live/at (metro offset) ((get fortissimo.instruments/instrs (get noote "instr")) (get noote "pitch") (get noote "duration") (get noote "tempo")))
+                        (= (get noote "type") "chord") (overtone.live/at ((metronome (get noote "tempo")) offset) (doseq [n (get noote "notes")] 
+                             ((get fortissimo.instruments/instrs (get n "instr")) (get n "pitch") (get n "duration") (get n "tempo"))))
+                        (= (get noote "type") "rest") (do))
                     (process (rest notes) (+ offset (get noote "duration")) metro))
-                :else (overtone.live/apply-at (metro offset) (fn [] (let [noote (first notes) metro (overtone.live/metronome (get noote "tempo"))]
+                :else (overtone.live/at (metro offset) (let [noote (first notes) metro (overtone.live/metronome (get noote "tempo"))]
+                    (cond
+                        (= (get noote "type") "note") (overtone.live/at (metro offset) ((get fortissimo.instruments/instrs (get noote "instr")) (get noote "pitch") (get noote "duration") (get noote "tempo")))
+                        (= (get noote "type") "chord") (overtone.live/at ((metronome (get noote "tempo")) offset) (doseq [n (get noote "notes")] 
+                            ((get fortissimo.instruments/instrs (get n "instr")) (get n "pitch") (get n "duration") (get n "tempo"))))
+                        (= (get noote "type") "rest") (do))
 
-                    (overtone.live/at (metro (metro)) ((get fortissimo.instruments/instrs (get noote "instr")) (get noote "pitch") (get noote "duration") (get noote "tempo")))
-                    (process (rest notes) (+ (metro) (get noote "duration")) metro))))))]
-            (apply-at commonTime (process notes 0 (metronome -1)))))
+                    
+                    (process (rest notes) (+ (metro) (get noote "duration")) metro)))))]
+            (apply-at commonTime (process notes 0 (metronome (get (first notes) "tempo"))))))
     '''
 

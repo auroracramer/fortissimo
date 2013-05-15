@@ -43,24 +43,56 @@ def EvalNotes(phrases, output_filepath=None):
         except:
             pass
 
-def ExecScript(cs164_input_file, outputfilepath = None):
+def ExecScript(cs164_input_file, outputfilepath = None):        
         cs164_grammar_file = ReadFile("fortissimo/fortissimo.grm") 
         cs164parser = parser_generator.makeParser(grammar_parser.parse(cs164_grammar_file))
-    
         # Load program into the cs164interpreter
         input_ast = cs164parser.parse(open(cs164_input_file).read())
         # pprint.pprint(input_ast)
-        
-        '''Uncomment when the interpreter object is made'''
+        if input_ast == None:
+            print "Could not parse input file."
+            exit(-1)
         interpretr = interpreter.Interpreter(False)
         evaled = interpretr.evalStmt(input_ast, interpretr.global_env)
-
         #evaled = interpreter.Exec(input_ast)
         EvalNotes(evaled["_notes"], outputfilepath)
- 
 #if __name__ == '__main__':
 if True:
-    print "Fortissimo - Simplified Programmatic Music\nPowered by Overtone.\n\n"
+
+    welcome = """
+
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @8iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii8@
+        @0 0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@@@@@@@     '@@@@@@@     '@@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@@@@;   0@;  .@@@;   0@;  .@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@@L    0@;   @@L    0@;   @@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@;    f@@@@GB@1    ;@@@@G8@@@0 0@
+        @0 0@@@@@@@@@@@@@@@@;    :@@@@@@@;    ,@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@;                          ;@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@@.     1@@@@@@@.    ;@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@@;    ,@@@@@@@;    ,@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@G     G@@@@@@G     G@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@,    ;@@@@@@@:    ;@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@;    ;@@@@@@@;    ;@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@8    ;@@@@@@@8    ;@@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@:   ;@@@@@@@@;   :@@@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@;   ;@@@@@@@@;   ;@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@;   G@@;   ;@1   G@@;   ;@@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@,       .;@@@:        ;@@@@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@@L:,,,,;@@@@@@L:,,,;@@@@@@@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0 0@
+        @0 0@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@0 0@
+        @G iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii G@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ 
+
+             Fortissimo - Simplified Programmatic Music.
+    
+                        Powered by Overtone.
+"""
+    print welcome
     if len(sys.argv) > 3:
         print "Too many arguments specified"
         print "USAGE: python main.py <ff file name> | python main.py"

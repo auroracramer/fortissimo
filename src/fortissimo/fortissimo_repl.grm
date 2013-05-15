@@ -15,7 +15,7 @@ S -> Phrase %{ return n1.val %}
   | 'play' ID 'with' ParamList %{ return ['play-with', n2.val, n4.val] %}
   |  ID 'is' ID %{ return ['asgn', n1.val, n3.val] %}
   | 'playing' ID %{ return ['playing', n2.val] %}
-  | 'playing' ID 'in' 'Octave' Num %{ return ['playing-in', n2.val, n5.val] %}
+  | 'playing' ID 'in' 'octave' Num %{ return ['playing-in', n2.val, n5.val] %}
   | 'notes' NoteList %{ return ['notes', n2.val] %}
   | 'key of' ID %{ return ['key', n2.val, "major"] %}
   | 'key of' ID ID %{ return ['key', n2.val, n3.val] %}
@@ -31,6 +31,9 @@ S -> Phrase %{ return n1.val %}
   | 'exit' %{ return ['quit'] %}
   | 'record' %{ return ['record'] %}
   | 'record' ID %{ return ['record-phrase', n2.val] %}
+  | 'duration' 'of' /[w,h,q,e,s,t]/ %{return ['duration', n3.val] %}
+  | 'include files' /^\s*[\\w,\s-]+$/ %{ return ['include', n2.val] %}
+  | 'import instr' /^\s*[\\w,\s-]+$/  %{ return ['import-instr', n2.val] %}
   ;
 
 PhraseList -> PhraseList ID %{ return n1.val + [n2.val] %}
@@ -58,15 +61,37 @@ NoteList -> NoteList Note %{ return n1.val + [n2.val] %}
          |  Note %{ return [n1.val] %}
          ;
 
-Note -> Num %{return ['scale-note', n1.val] %}
-  | NumDuration %{return ['scale-duration-note', int(n1.val[:-1]), n1.val[-1]] %}
-  | AbsoluteNote %{return ['abs-note', n1.val] %}
+Note -> Chord %{ return ['chord', n1.val] %}
+  | Note2 %{ return n1.val %}
   ;
 
-NumDuration -> /\-*[0-9]+[w,h,q,e,s,t]/ %{return n1.val %}
+NoteList2 -> NoteList2 Note2 %{ return n1.val + [n2.val] %}
+	| Note2 %{ return [n1.val] %}
+	;
+
+Note2 -> Num %{return ['scale-note', n1.val, False] %}
+  | NumDuration %{return ['scale-duration-note', int(n1.val[0][:-1]), n1.val[0][-1], n1.val[1]] %}
+  | AbsoluteNote %{return ['abs-duration-note', n1.val[0][:-1], n1.val[0][-1], n1.val[1]] %}
+  | AbsoluteNote2 %{return ['abs-note', n1.val, False] %}
+  | Rest %{ return ['rest-note', n1.val[0], n1.val[1]] %}
   ;
 
-AbsoluteNote -> /[a,b,c,d,e,f]([#,b]?)([1-8]?)([w,h,q,e,s,t]?)/ %{ return n1.val %}
+Chord -> '(' NoteList2 ')' %{return n2.val %}
+    ;
+
+Rest -> /[r][w,h,q,e,s,t]/ %{return [n1.val[-1], False] %}
+	| /[r][w,h,q,e,s,t][.]/ %{return [n1.val[-2], True] %}
+	;
+
+NumDuration -> /\-*[0-9]+[w,h,q,e,s,t]/ %{return [n1.val, False] %}
+	| /\-*[0-9]+[w,h,q,e,s,t][.]/ %{return [n1.val[:-1], True] %}
+  ;
+
+AbsoluteNote -> /[a,b,c,d,e,f,g]([#,b]?)[1-8]([w,h,q,e,s,t])/ %{return [n1.val, False] %}
+	| /[a,b,c,d,e,f,g]([#,b]?)[1-8]([w,h,q,e,s,t])[.]/ %{return [n1.val[:-1], True] %}
+	;
+
+AbsoluteNote2 -> /[a,b,c,d,e,f,g]([#,b]?)[1-8]/ %{return n1.val %}
   ;
 
 Num -> /\-*[0-9]+/ %{return int(n1.val) %}

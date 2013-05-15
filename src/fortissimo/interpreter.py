@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 import sys
 from key_engine import key_engine
+import parser_generator
 import pprint
-#from overtonepy import *
+import overtonepy as ot
+import java.lang.ClassLoader
+import java.io.InputStreamReader
+import java.io.BufferedReader
+import java
 
 class Phrase:
     def __init__(self, name, body, args, env):
@@ -11,12 +16,26 @@ class Phrase:
         self.args = args
         self.outer_env = env
 
+def ReadFile(filepath):
+        loader = java.lang.ClassLoader.getSystemClassLoader()
+        stream = loader.getResourceAsStream(filepath)
+        reader = java.io.BufferedReader(java.io.InputStreamReader(stream))
+        string = ""
+        line = reader.readLine()
+        while line != None:
+            string += line + "\n"
+            line = reader.readLine()
+        return string
+
 class Interpreter:
     def __init__(self, recording=False):
         self.global_env = {"_scale": ["C","D","E","F","G","A","B"], \
         "_octave": 4, "_currInstr": "Piano", "_duration": "q", \
         "_tempo": 120, "_meter": (4,4), "_notes": [{}], "__up__": None}
         self.recording = recording
+    
+    def resetNotes(self):
+        self.global_env["_notes"] = [{}]
 
     def lookup(self, name, env):
         if not env:
@@ -69,7 +88,6 @@ class Interpreter:
                             env["_notes"] = val["_notes"]
                         else:
                             env["_notes"].extend(val["_notes"])
-
             elif s[0] == 'play-with': # only one phrase can follow after
                 phrase = self.lookup(s[1], env)
                 val = doCall2(phrase, s[2])
@@ -81,6 +99,8 @@ class Interpreter:
                     else:
                         env["_notes"].extend(val["_notes"])
             elif s[0] == 'loop':
+                self.evalStmt(s[1:], env)
+                """
                 for p in s[1:]:                        
                     if s[1][0] == 'play-with':
                         phrase = self.lookup(s[1][1], env)
@@ -102,6 +122,7 @@ class Interpreter:
                                 env["_notes"] = val["_notes"]
                             else:
                                 env["_notes"].extend(val["_notes"])
+                """
             elif s[0] == "asgn":
                 env[s[1]] = s[2]
             elif s[0] == "playing":
@@ -129,6 +150,31 @@ class Interpreter:
                     pass
                 else:
                     env["_meter"] = s[1]
+            elif s[0] == "tempo":
+                if "_tempo" in env.keys() and env["__up__"] is not None:
+                    env["_tempo"] = s[1]
+            elif s[0] == "duration":
+                if "_duration" in env.keys() and env["__up__"] is not None:
+                    pass
+                else:
+                    env["_duration"] = s[1]
+            elif s[0] == 'import-instr':
+                filename = s[1]
+                ot.importInstrument(filename)
+            elif s[0] == 'include':
+                filename = s[1]
+                try:
+                    fil = open(filename, "r")
+                    text = fil.read()
+                    fil.close()
+                    grammar_file = ReadFile("fortissimo/fortissimo.grm")
+                    parser = parser_generator.makeParser(grammar_parser.parse(cs164_grammar_file))
+                    input_ast = parser.parse(text)
+                    interpr = Intepreter(False)
+                    new_env = interpr.evalStmt(input_ast, interpr.global_env)
+                    self.global_env.update(new_env)
+                except:
+                    print "Could not include file '" + filename + "'."
             elif s[0] == "notes":
                 # print
                 # print
@@ -213,26 +259,33 @@ class Interpreter:
                 scale = self.lookup("_scale", env)
                 pitch = scale[noteMod(note[1], scale) - 1] + getOctave(note[1], self.lookup("_octave", env), scale)
                 duration = noteDuration(note[2], self.lookup("_meter", env))
+                if note[3]:
+                    # Dotted
+                    duration = duration * 1.5
                 
                 return makeNote(pitch, duration)
                 
             if note[0] == 'chord':
-                notes = [handleNote(n) for n in notes]
-                duration = reduce(lambda x,y: min(x, y['duration']),100)
+                notes = [handleNote(n) for n in note[1]]
+                duration = reduce(lambda x,y: min(x, y['duration']), notes, 100)
                 return makeChord(notes, duration)
 
             if note[0] == 'abs-note':
                 pitch = note[1]
-                duration = noteDuration(self.lookup("_duration", env), self.lookup("_meter", env)
+                duration = noteDuration(self.lookup("_duration", env), self.lookup("_meter", env))
                 return makeNote(pitch, duration)
 
             if note[0] == 'abs-duration-note':
                 pitch = note[1]
                 duration = noteDuration(note[2], self.lookup("_meter", env))
+                if note[3]:
+                    # Dotted
+                    duration = duration * 1.5
         
                 return makeNote(pitch, duration)
-            if note[0] == 'rest':
-                return makeRest(note[1])
+            if note[0] == 'rest-note':
+                duration = noteDuration(note[1], self.lookup("_meter", env))
+                return makeRest(duration)
 
         for note in newNotes:
             notes.append(handleNote(note))
