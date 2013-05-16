@@ -163,7 +163,8 @@ class EarleyParser:
                 e2 = (src,dst,prod,pos)
                 RHS = prod.RHS
                 status = complete if len(RHS) == pos else inProgress
-                (edgeList,edgeSet,edgeChild) = edgesIncomingTo(dst,status)
+                data = edgesIncomingTo(dst,status)
+                (edgeList,edgeSet,edgeChildren) = data[0], data[1], data[2]
                 if e2 not in edgeSet:
                     if status == complete:
                         newProd = prod
@@ -172,36 +173,36 @@ class EarleyParser:
                         elif ambiguousDict[(src,dst,prod.LHS)] != prod:
                             amb[0] = True
                             oldProd = ambiguousDict[(src,dst,prod.LHS)]
-                            if e2 in edgeChild:
-                                oldTree = edgeChild[e2]
+                            if e2 in edgeChildren:
+                                oldTree = edgeChildren[e2]
                             else:
-                                oldTree = edgeChild[(src,dst,oldProd,len(oldProd.RHS))]
+                                oldTree = edgeChildren[(src,dst,oldProd,len(oldProd.RHS))]
                             (newProd,treeChild) = disambiguate(oldProd,prod,oldTree,treeChild)
                             
                             if (src,dst, oldProd, len(oldProd.RHS)) in edgeList:
                                 edgeList.remove((src,dst, oldProd, len(oldProd.RHS)))
-                                del edgeChild[(src,dst, oldProd, len(oldProd.RHS))]
+                                del edgeChildren[(src,dst, oldProd, len(oldProd.RHS))]
                             e3 = (src,dst,newProd,len(newProd.RHS))
-                            edgeChild[e3] = treeChild
+                            edgeChildren[e3] = treeChild
                             edgeList.append(e3)
                             edgeSet.add(e3)
                             ambiguousDict[(src,dst,prod.LHS)] = newProd
                             return False
-                    edgeChild[e2] = treeChild
+                    edgeChildren[e2] = treeChild
                     edgeList.append(e2)
                     edgeSet.add(e2)
                     return True
                 else:
                     if status == complete:
                         oldProd = ambiguousDict[(src,dst,prod.LHS)]
-                        if e2 in edgeChild:
-                            oldTree = edgeChild[e2]
+                        if e2 in edgeChildren:
+                            oldTree = edgeChildren[e2]
                         else:
-                            oldTree = edgeChild[(src,dst,oldProd,len(oldProd.RHS))]
+                            oldTree = edgeChildren[(src,dst,oldProd,len(oldProd.RHS))]
                         if oldTree != treeChild:
                             oldProd = ambiguousDict[(src,dst,prod.LHS)]
                             (newProd,newChild) = disambiguate(oldProd,prod,oldTree,treeChild)
-                            edgeChild[e2] = newChild
+                            edgeChildren[e2] = newChild
                     return False
             
             sbol = grammar.startSymbol
