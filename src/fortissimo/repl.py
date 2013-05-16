@@ -9,6 +9,9 @@ import sys, getopt, interpreter, parser_generator, grammar_parser, pprint
 import overtonepy as ot
 
 def ReadFile(filepath):
+    '''
+    Gets a specified jar resource and returns the string of its contents
+    '''
     loader = java.lang.ClassLoader.getSystemClassLoader()
     stream = loader.getResourceAsStream(filepath)
     reader = java.io.BufferedReader(java.io.InputStreamReader(stream))
@@ -20,6 +23,9 @@ def ReadFile(filepath):
     return string
     
 def EvalNotes(phrases, output_filepath=None):
+    ''' 
+    Plays the notes
+    '''
     if output_filepath:
         a = ot.startRecording(output_filepath)
     masterlist = defaultdict(list) 
@@ -54,15 +60,12 @@ def rep_loop():
         try:
             ast = recognizer.parse(line)
             s = ast[0]
-        except Exception:
+        except:
             print ": command not recognized"
             continue
         if s[0] == "quit" or s[0] == "exit":
             sys.exit()
         elif s[0] == "save": #REDO
-            #with open("saved_phrases", "w") as f:
-            #    for x in phrase_list:
-            #        f.write(x + "\n")
             f = open("saved_phrases", "w")
             try:
                 for x in phrase_list:
@@ -74,7 +77,7 @@ def rep_loop():
             s = parser.parse(f.read())
             try:
                 interp.evalStmt(ast, interp.global_env)
-            except Exception:
+            except:
                 print "Could not load."
                 continue
         elif line == "print env": #DEBUG ONLY REMOVE LATER
@@ -98,45 +101,51 @@ def rep_loop():
                     depth -= 1
                     num_phrases += 1
                     phrase_list.append("")
-                except Exception:
-                    print "Could not define phrase."
+                except:
+                    pass
                 
             else:
                 phrase_list[num_phrases] += line + " "
                 depth -= 1
         elif s[0] == "phrase-start":
-            prompt = "... "
+            # Starts a phrase declaration
+            prompt = "...  "
             depth += 1
             phrase_list[num_phrases] += line + " "
         elif s[0] == "play" and depth == 0:
+            # plays the notes
             try:
                 play_env = interp.evalStmt(ast, interp.global_env)
                 phrases = play_env["_notes"]
                 interp.resetNotes()
                 EvalNotes(phrases)
-            except Exception:
+            except:
                 print "Could not play phrase."
             
         elif s[0] == "loop" and depth == 0:
+            # Looks the input 4 times
             try:
                 play_env = interp.evalStmt(ast, interp.global_env)
                 phrases = play_env["_notes"]
                 interp.resetNotes()
                 EvalNotes(phrases)
-            except Exception:
+            except:
                 print "Could not loop phrase."
         elif s[0] == "record" and depth == 0:
                 ot.startRecording("./ff-out.wav")
         elif s[0] == "stop-record" and depth == 0:
                 ot.stopRecording()
         elif s[0] == "record-phrase" and depth == 0:
+            '''
+            Start recording a specific phrase
+            '''
             try:
                 ot.startRecording()
                 play_env = interp.evalStmt(ast, interp.global_env)
                 phrases = play_env["_notes"]
                 interp.resetNotes()
                 EvalNotes(phrases, "./ff-out.wav")
-            except Exception:
+            except:
                 print "Could not record phrase."
         elif s[0] == "help" and depth == 0:
             help_message = """

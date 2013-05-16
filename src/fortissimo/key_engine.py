@@ -30,8 +30,11 @@ chromatic_scale_sharp = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]
 chromatic_scale_flat = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"]
 
 def key_engine(note, scale_name):
+    '''
+    Dynamically generates the notes in a scale based on the tonic
+    '''
     scale = []
-    
+    scale_name = scale_name.lower()
     if note in chromatic_scale_sharp:
         start = chromatic_scale_sharp.index(note)
         full_scale = chromatic_scale_sharp[start:] + chromatic_scale_sharp[:start]
@@ -46,5 +49,4 @@ def key_engine(note, scale_name):
             index = index + x
     else:
         print "Key not defined"
-        sys.exit(1)
     return scale
