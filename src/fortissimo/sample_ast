@@ -1,2 +1,0 @@
-[{}]
-{'_notes': [{'Inst1': [('C4', 1.0, 120), ('D4', 1.0, 120), ('E4', 1.0, 120), ('F4', 1.0, 120), ('G4', 1.0, 120), ('A4', 1.0, 120), ('B4', 1.0, 120), ('C5', 1.0, 120)]}], '_currInstr': 'Inst1', '__up__': {'_octave': 4, '_notes': {...}, 'Inst1': 'Piano', '_scale': ['C', 'D', 'E', 'F', 'G', 'A', 'B'], '_tempo': 120, 'CScale': <interpreter.Phrase instance at 0x2542320>, '_meter': (4, 4), '_currInstr': 'Piano', '_duration': 'q', '__up__': None}}
