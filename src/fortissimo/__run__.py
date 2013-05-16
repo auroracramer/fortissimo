@@ -12,6 +12,9 @@ import repl
 import java
 
 def ReadFile(filepath):
+    """
+    Loads a jar resource as string.
+    """
     loader = java.lang.ClassLoader.getSystemClassLoader()
     stream = loader.getResourceAsStream(filepath)
     reader = java.io.BufferedReader(java.io.InputStreamReader(stream))
@@ -25,22 +28,28 @@ def ReadFile(filepath):
 
       
 def EvalNotes(phrases, output_filepath=None):
+    '''
+    Evaluates notes and plays them
+    '''
     a = ot.startOvertone()
 
     if output_filepath:
         a = ot.startRecording(output_filepath)
     masterlist = defaultdict(list) 
     for phrase in phrases:
+        # Add notes to the master notelist
         for instr in phrase.keys():
             masterlist[instr].extend(phrase[instr])
+    # Get a common time
     commonTime = ot.getCommonTime()
     for index, notelist in enumerate(masterlist.values()):
+        # Play the notes!
         try:
             if index == len(masterlist.values()) - 1:
                 ot.playNotes(notelist, True, commonTime, True)
             else:
                 ot.playNotes(notelist, False, commonTime, False)
-        except:
+        except Exception:
             pass
 
 def ExecScript(cs164_input_file, outputfilepath = None):        

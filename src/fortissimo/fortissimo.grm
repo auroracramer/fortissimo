@@ -83,7 +83,7 @@ AbsoluteNote -> /[a,b,c,d,e,f,g]([#,b]?)([1-8])([w,h,q,e,s,t])/ %{return [n1.val
 AbsoluteNote2 -> /[a,b,c,d,e,f,g]([#,b]?)([1-8])/ %{return n1.val %}
   ;
 
-NumDuration -> /\-*[0-9]+[w,h,q,e,s,t]/ %{return [n1.val, False] %}
+NumDuration -> /\-*[1-9]+[w,h,q,e,s,t]/ %{return [n1.val, False] %}
 	| /\-*[0-9]+[w,h,q,e,s,t][.]/ %{return [n1.val[:-1], True] %}
   ;
 

@@ -85,8 +85,8 @@ Rest -> /[r][w,h,q,e,s,t]/ %{return [n1.val[-1], False] %}
 	| /[r][w,h,q,e,s,t][.]/ %{return [n1.val[-2], True] %}
 	;
 
-NumDuration -> /\-*[0-9]+[w,h,q,e,s,t]/ %{return [n1.val, False] %}
-	| /\-*[0-9]+[w,h,q,e,s,t][.]/ %{return [n1.val[:-1], True] %}
+NumDuration -> /\-*[1-9]+[w,h,q,e,s,t]/ %{return [n1.val, False] %}
+	| /\-*[1-9]+[w,h,q,e,s,t][.]/ %{return [n1.val[:-1], True] %}
   ;
 
 AbsoluteNote -> /[a,b,c,d,e,f,g]([#,b]?)[1-8]([w,h,q,e,s,t])/ %{return [n1.val, False] %}
