@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+
+export LD_LIBRARY_PATH=$PWD/native/macosx/x86_64/
+
+java -cp fortissimo-1.0-standalone.jar -cp jython.jar org.python.util.jython -jar fortissimo-1.0-standalone.jar "$@"
